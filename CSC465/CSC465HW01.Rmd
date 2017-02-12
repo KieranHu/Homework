@@ -1,0 +1,14 @@
+---
+title: "CSC465HW01"
+author: "Kaiyuan Hu"
+date: "2017/2/12"
+output: pdf_document
+---
+
+# Question 1
+
+## a)
+Adding a constant *c* in each response *Y* means we can rewite the original model as $Y+C = \beta_0  + \beta_1 X+C$, which is $Y+C = (\beta_0 + C) + \beta_1 X$. So, the new $\beta_1$ is equal to the previous one and th new $\beta_0$ is equal to the original $\beta_0 + c$.
+
+
+## b)
