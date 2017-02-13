@@ -173,7 +173,6 @@ summary.table = function(fit){
              Numerator.d.f,Denominator.d.f, Fstat, Pv)
   
     names(sum) = names(sumname)
- 
   return(sum)
 }
 
@@ -210,7 +209,7 @@ table
 ```{r}
 par(mfrow=c(3,2))
 newbirthwt$smoke <- as.numeric(newbirthwt$smoke)
-newbirthwt$nonsmoke <- newbirthwt$smoke-1
+newbirthwt$nonsmoke <- ifelse(newbirthwt$smoke == 1, 0, 1)
 newbirthwt$smoke <- as.factor(newbirthwt$smoke)
 newbirthwt$nonsmoke<- as.factor(newbirthwt$nonsmoke)
 bwt <- newbirthwt$bwt
@@ -226,31 +225,19 @@ formula.list = list(
   bwt ~ smoke + nonsmoke:age,
   bwt ~ smoke * age
 )
+data = list(
+data.frame(age),
+data.frame(smoke),
+data.frame(smoke, age),
+data.frame(smoke, smoke:age),
+data.frame(smoke, nonsmoke:age),
+data.frame(smoke * age))
 
 
-data = data.frame(age)
-value = predict(lm(bwt ~ age), data)
-plot(value, age)
-
-data = data.frame(smoke)
-value = predict(lm(bwt ~ smoke), data)
-plot(value, age)
-
-data = data.frame(smoke, age)
-value = predict(lm(bwt ~ smoke + age), data)
-plot(value, age)
-
-data = data.frame(smoke, smoke:age)
-value = predict(lm(bwt ~ smoke + smoke:age), data)
-plot(value, age)
-
-data = data.frame(smoke, nonsmoke:age)
-value = predict(lm(bwt ~ smoke + nonsmoke:age), data)
-plot(value, age)
-
-data = data.frame(smoke * age)
-value = predict(lm(bwt ~ smoke*age), data)
-plot(value, age)
+for (i in 1:6) {
+  plot(predict(lm(formula.list[[i]]), newdata = data[i]), age, 
+       xlab = "bwt", ylab = "age",main= formula.list[[i]])
+}
 ```
 
 ## d)
