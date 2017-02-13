@@ -81,3 +81,189 @@ The degree of freedom of $I$ is 1, so the model complexity is low. For model $II
 
 # Question 3
 
+```{r}
+library(MASS)
+```
+
+## a)
+
+```{r}
+modela = lm(bwt~age, data = birthwt)
+```
+
+## b) 
+
+```{r}
+inf_measure = influence.measures(modela)
+```
+
+## c)
+
+### I&II&III&IV&V)
+```{r}
+plot(birthwt$bwt~birthwt$age, pch = 20, xlab = 'age', ylab = 'bwt') # I
+abline(modela, col = 'red') # II
+flag = inf_measure$infmat
+points(birthwt$age, birthwt$bwt, col = ifelse(flag[,6] > 4/dim(birthwt)[1], 'red', 'black'), pch = 20) # III
+```
+
+```{r}
+plot(birthwt$bwt~birthwt$age, pch = 20, xlab = 'age', ylab = 'bwt') # I
+abline(modela, col = 'red')
+points(birthwt$age, birthwt$bwt, col = ifelse(flag[,3] < 0, 'blue', 'green'), pch = 2)
+```
+
+```{r}
+plot(birthwt$bwt~birthwt$age, pch = 20, xlab = 'age', ylab = 'bwt') # I
+abline(modela, col = 'red')# IV
+points(birthwt$age, birthwt$bwt, col = ifelse(flag[,4] < 1, 'blue', 'green'), pch = 6) #V
+```
+
+## d)
+It seems the fitted line distinguishes high and low *DFFITSi*. High *DFFITSi* value usually above the fitted line and low *DFFITSi* value usually below the fitted line. 
+
+## e)
+No. As we can see in the figure, no flag criterion is dominates. We need them all to detect outliers.
+
+## f)
+As we can see in the figure, If the bwt value is higher than 4000 or lower than 2000, observations will have high covariance ratio.
+
+If a value is too far away from most other values, remove this point, the standard error of $\beta$ will decrease. 
+
+## g)
+$X_{,,}$ yield lower varience, since $(X_{,,}^TX_{,,})^{-1} < (X_{,}^TX_{,})^{-1}$.
+
+## h)
+The large sample variance will cause small beta varience. 
+
+## i)
+No. Coveriance ratio it alone can not tell which point is really a outlier, since coveriance ratio only compute the distance between points. However, far distance does not necessaily means it is a outlier. 
+
+------------------------------------------------------------------------------------------------
+
+# Question 4
+
+## a)
+
+```{r}
+newbirthwt = subset(birthwt, flag[, 3] > 0)
+newbirthwt$nonsmoke <- 1-newbirthwt$smoke
+newbirthwt$smoke = as.factor(newbirthwt$smoke)
+
+```
+
+## b)
+
+```{r}
+summary.table = function(fit){
+    Nonsmoke.Intercept = summary(fit)$coef[1,1]
+    Nonsmoke.slope = NA
+    Smoke.Intercept = summary(fit)$coef[2,1] + Nonsmoke.Intercept
+    Smoke.slope = NA
+  
+    Radj = summary(fit)$adj.r.squared
+    Numerator.d.f = summary(fit)$f[2]
+    Denominator.d.f = summary(fit)$f[3]
+    Fstat = summary(fit)$f[1]
+    Pv = 1 - pf(Fstat,Numerator.d.f,Denominator.d.f)
+  
+    sumname = data.frame( Nonsmoke.Intercept, Nonsmoke.slope, Smoke.Intercept, Smoke.slope,
+                          Radj, Numerator.d.f, Denominator.d.f, Fstat, Pv)
+    sum = c( Nonsmoke.Intercept, Nonsmoke.slope, Smoke.Intercept, Smoke.slope, Radj,
+             Numerator.d.f,Denominator.d.f, Fstat, Pv)
+  
+    names(sum) = names(sumname)
+ 
+  return(sum)
+}
+
+
+newbirthwt$smoke <- as.factor(newbirthwt$smoke)
+bwt <- newbirthwt$bwt
+smoke <- newbirthwt$smoke
+nonsmoke <- newbirthwt$nonsmoke
+age <- newbirthwt$age
+
+formula.list = list(
+  bwt ~ age,
+  bwt ~ smoke,
+  bwt ~ smoke + age,
+  bwt ~ smoke + smoke:age,
+  bwt ~ smoke+(1-smoke):age,
+  bwt ~ smoke * age
+)
+
+table = NULL
+for (i in 1:6)  table = rbind(table, summary.table(lm(formula.list[[i]]))) 
+row.names(table) = formula.list 
+table[1,2] = 23.08792
+table[1,3] = NA
+table[3,2] = table[3,4] = 21.67214
+table[4,1] = table[4,1] + 29.077167
+table[4,4] = table[4,4] - 5.530085
+table[6,2] = 29.07717
+table[6,4] = table[6,2] - 34.60725
+table
+```
+
+## c)
+```{r}
+par(mfrow=c(3,2))
+newbirthwt$smoke <- as.numeric(newbirthwt$smoke)
+newbirthwt$nonsmoke <- newbirthwt$smoke-1
+newbirthwt$smoke <- as.factor(newbirthwt$smoke)
+newbirthwt$nonsmoke<- as.factor(newbirthwt$nonsmoke)
+bwt <- newbirthwt$bwt
+smoke <- newbirthwt$smoke
+nonsmoke <- newbirthwt$nonsmoke
+age <- newbirthwt$age
+
+formula.list = list(
+  bwt ~ age,
+  bwt ~ smoke,
+  bwt ~ smoke + age,
+  bwt ~ smoke + smoke:age,
+  bwt ~ smoke + nonsmoke:age,
+  bwt ~ smoke * age
+)
+
+
+data = data.frame(age)
+value = predict(lm(bwt ~ age), data)
+plot(value, age)
+
+data = data.frame(smoke)
+value = predict(lm(bwt ~ smoke), data)
+plot(value, age)
+
+data = data.frame(smoke, age)
+value = predict(lm(bwt ~ smoke + age), data)
+plot(value, age)
+
+data = data.frame(smoke, smoke:age)
+value = predict(lm(bwt ~ smoke + smoke:age), data)
+plot(value, age)
+
+data = data.frame(smoke, nonsmoke:age)
+value = predict(lm(bwt ~ smoke + nonsmoke:age), data)
+plot(value, age)
+
+data = data.frame(smoke * age)
+value = predict(lm(bwt ~ smoke*age), data)
+plot(value, age)
+```
+
+## d)
+
+The model *bwt ~ smoke \* age* have the highest $R^2_{adj}$ value. 
+
+```{r}
+summary(lm(bwt ~ smoke * age))
+```
+
+For smoker the model is $Y = 2873.681 + 29.077 * X$.
+For nonsmoker the model is $Y = 3543.187 - 5.53 * X$.
+
+## e)
+Model 1, model 2, model 3 and model 4 are all the sub model of model 6. We can say model 6 is the full model. The $R^2_{adj}$ value also denote that model 6 explain the most variables.
+
