@@ -3,6 +3,8 @@ title: "CSC465HW01"
 author: "Kaiyuan Hu"
 date: "2017/2/12"
 output: pdf_document
+header-includes:
+- \usepackage{amsmath}
 ---
 
 # Question 1
@@ -12,3 +14,70 @@ Adding a constant *c* in each response *Y* means we can rewite the original mode
 
 
 ## b)
+For the new model: 
+$$ \hat Y + C = \hat \beta_0^{'} + \hat \beta_1^{'} X_{new}$$
+$$\hat Y = \hat \beta_0^{'} + \hat \beta_1{'} X_{new} - C$$
+$$ \hat \beta_1{'} X_{new} - C = \hat \beta_1 X$$
+$$ \hat \beta_1{'} X_{new}  = \hat \beta_1 X + C$$
+$$ X_{new} = (\hat \beta_1 X + C)/ \hat \beta_1{'}$$
+-----------------------------------------------------------------------------------------------
+
+# Question 2
+
+## a)
+$$trace(AB^T) = \sum_{i = 1}^{n}\sum_{j =1}^{m}a_{ij}b_{ji} = \sum_{j =1}^{m}\sum_{i = 1}^{n}b_{ji}a_{ij} = trace(B^T A)$$
+Then:
+$$trace(H) = trace(X(X^T X)^{-1}X^T) = trace(X^T X(X^T X)^{-1}) = trace(I_{q*q}) = q$$
+
+## b) 
+
+### I)
+$$H*H = X(X^T X)^{-1}X^T * X(X^T X)^{-1}X^T = X(X^T X)^{-1}X^T X(X^T X)^{-1}X^T = X(X^TX)^{-1}*I*X^T = H $$
+So matrix $H$ is idempotent.
+
+### II)
+We assume $H \neq HH$, which means there exist $n$ such that $H^n y$ is the closet point in $S_q$ closet to $y$. This statement is contradict to the fact that $Hy$ is the closet point in $S_q$ closet to $y$. So, $H = HH$. 
+
+## c)
+
+### I)
+$$\mathbf{H^{'}} = \left[\begin{array}
+{rrr}
+1/n & \cdots & 1/n \\
+\cdots & \cdots & \cdots \\
+1/n & \cdots & 1/n
+\end{array}\right]_{n*n}$$
+$trace(H^{'}) = 1$
+
+### II)
+$$\mathbf{H^{'}} = \left[\begin{array}
+{rrrrrr}
+1/2 & 1/2 & 0 & 0 & 0 & \cdots \\
+1/3 & 1/3 & 1/3 & 0 & 0 & \cdots \\
+0 & 1/3 & 1/3 & 1/3 & 0 & \cdots \\
+\cdots & \cdots & \cdots & \cdots & \cdots & \cdots\\
+0 & 0 & \cdots & 1/3 & 1/3 & 1/3 \\
+0 & 0 & 0 & \cdots & 1/2 & 1/2
+\end{array}\right]$$
+$trace(H^{'}) = 1 + (n-2)/3$
+
+### III)
+$$\mathbf{H^{'}} = \left[\begin{array}
+{rrrr}
+1 & 0 & \cdots & 0 \\
+0 & 1 & \cdots & 0 \\
+\cdots & \cdots & \cdots & \cdots\\
+0 & \cdots & 0 & 1
+\end{array}\right]_{n*n}$$
+$trace(H^{'}) = n$
+
+## d)
+When $n = 2$, the order of complexity is $I = II < III$
+When $n > 2$, the order of complexity is $I < II < III$
+
+The degree of freedom of $I$ is 1, so the model complexity is low. For model $II$, as the complexity increase the $MSE$ will decrease. For model $III$, the $MSE$ is zero, this model is really complexity. 
+
+----------------------------------------------------------------------------------------------
+
+# Question 3
+
