@@ -157,10 +157,30 @@ newbirthwt$smoke = as.factor(newbirthwt$smoke)
 ```{r}
 summary.table = function(fit){
     Nonsmoke.Intercept = summary(fit)$coef[1,1]
-    Nonsmoke.slope = NA
+    Nonsmoke.slope = 0
     Smoke.Intercept = summary(fit)$coef[2,1] + Nonsmoke.Intercept
-    Smoke.slope = NA
-  
+    Smoke.slope = 0
+    
+    if(i == 1){
+      Nonsmoke.slope = summary(fit)$coef[2,1]
+      Smoke.Intercept = NA
+      Smoke.slope = NA
+    }
+    
+    if(i == 3){
+      Smoke.Intercept = Smoke.slope = summary(fit)$coef[3,1]
+    }
+    
+    if(i >= 4 && i<= 5){
+      Nonsmoke.slope = summary(fit)$coef[3,1]
+      Smoke.slope = summary(fit)$coef[4,1]
+    }
+    
+    if(i == 6){
+      Nonsmoke.slope = summary(fit)$coef[3,1]
+      Smoke.slope = Nonsmoke.slope + summary(fit)$coef[4,1]
+    }
+    
     Radj = summary(fit)$adj.r.squared
     Numerator.d.f = summary(fit)$f[2]
     Denominator.d.f = summary(fit)$f[3]
@@ -178,6 +198,9 @@ summary.table = function(fit){
 
 
 newbirthwt$smoke <- as.factor(newbirthwt$smoke)
+newbirthwt$nonsmoke <- ifelse(newbirthwt$smoke == 1, 0, 1)
+newbirthwt$smoke <- as.factor(newbirthwt$smoke)
+newbirthwt$nonsmoke<- as.factor(newbirthwt$nonsmoke)
 bwt <- newbirthwt$bwt
 smoke <- newbirthwt$smoke
 nonsmoke <- newbirthwt$nonsmoke
@@ -188,20 +211,13 @@ formula.list = list(
   bwt ~ smoke,
   bwt ~ smoke + age,
   bwt ~ smoke + smoke:age,
-  bwt ~ smoke+(1-smoke):age,
+  bwt ~ smoke+nonsmoke:age,
   bwt ~ smoke * age
 )
 
 table = NULL
 for (i in 1:6)  table = rbind(table, summary.table(lm(formula.list[[i]]))) 
 row.names(table) = formula.list 
-table[1,2] = 23.08792
-table[1,3] = NA
-table[3,2] = table[3,4] = 21.67214
-table[4,1] = table[4,1] + 29.077167
-table[4,4] = table[4,4] - 5.530085
-table[6,2] = 29.07717
-table[6,4] = table[6,2] - 34.60725
 table
 ```
 
