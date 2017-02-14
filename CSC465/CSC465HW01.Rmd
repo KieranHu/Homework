@@ -110,13 +110,15 @@ points(birthwt$age, birthwt$bwt, col = ifelse(flag[,6] > 4/dim(birthwt)[1], 'red
 ```{r}
 plot(birthwt$bwt~birthwt$age, pch = 20, xlab = 'age', ylab = 'bwt') # I
 abline(modela, col = 'red')
-points(birthwt$age, birthwt$bwt, col = ifelse(flag[,3] < 0, 'blue', 'green'), pch = 2)
+points(birthwt$age[inf_measure$is.inf[,'dffit'] & inf_measure$infmat[,'dffit'] < 0], birthwt$bwt[inf_measure$is.inf[,'dffit'] & inf_measure$infmat[,'dffit'] < 0], type = 'p', col = 'blue', pch = 2)
+points(birthwt$age[inf_measure$is.inf[,'dffit'] & inf_measure$infmat[,'dffit'] >= 0], birthwt$bwt[inf_measure$is.inf[,'dffit'] & inf_measure$infmat[,'dffit'] >= 0], type = 'p', col = 'green', pch = 2)
 ```
 
 ```{r}
 plot(birthwt$bwt~birthwt$age, pch = 20, xlab = 'age', ylab = 'bwt') # I
 abline(modela, col = 'red')# IV
-points(birthwt$age, birthwt$bwt, col = ifelse(flag[,4] < 1, 'blue', 'green'), pch = 6) #V
+points(birthwt$age[inf_measure$is.inf[,'cov.r'] & inf_measure$infmat[,'cov.r'] < 1], birthwt$bwt[inf_measure$is.inf[,'cov.r'] & inf_measure$infmat[,'cov.r'] < 1], type = 'p', col = 'blue', pch = 6)
+points(birthwt$age[inf_measure$is.inf[,'cov.r'] & inf_measure$infmat[,'cov.r'] >= 1], birthwt$bwt[inf_measure$is.inf[,'cov.r'] & inf_measure$infmat[,'cov.r'] >= 1], type = 'p', col = 'green', pch = 6) #V
 ```
 
 ## d)
@@ -126,7 +128,7 @@ It seems the fitted line distinguishes high and low *DFFITSi*. High *DFFITSi* va
 No. As we can see in the figure, no flag criterion is dominates. We need them all to detect outliers.
 
 ## f)
-As we can see in the figure, If the bwt value is higher than 4000 or lower than 2000, observations will have high covariance ratio.
+As we can see in the figure, If the bwt value is higher than 4000 or lower than 2000 or age large than 35, observations will have high covariance ratio.
 
 If a value is too far away from most other values, remove this point, the standard error of $\beta$ will decrease. 
 
@@ -146,8 +148,7 @@ No. Coveriance ratio it alone can not tell which point is really a outlier, sinc
 ## a)
 
 ```{r}
-newbirthwt = subset(birthwt, flag[, 3] > 0)
-newbirthwt$smoke = as.factor(newbirthwt$smoke)
+newbirthwt = sub <- subset(birthwt,!inf_measure$is.inf[,'dffit'])
 ```
 
 ## b)
@@ -165,13 +166,20 @@ summary.table = function(fit){
       Smoke.slope = NA
     }
     
+    if(i == 2){
+      Smoke.Intercept = Nonsmoke.Intercept + summary(fit)$coef[2,1]
+    }
+    
     if(i == 3){
       Smoke.Intercept = Smoke.slope = summary(fit)$coef[3,1]
     }
     
-    if(i >= 4 && i<= 5){
+    if(i == 4){
+      Smoke.slope = summary(fit)$coef[3,1]
+    }
+    
+    if(i == 5){
       Nonsmoke.slope = summary(fit)$coef[3,1]
-      Smoke.slope = summary(fit)$coef[4,1]
     }
     
     if(i == 6){
@@ -197,8 +205,8 @@ summary.table = function(fit){
 }
 
 newbirthwt$nonsmoke <- ifelse(newbirthwt$smoke == 1, 0, 1)
-newbirthwt$smoke <- as.factor(newbirthwt$smoke)
-newbirthwt$nonsmoke<- as.factor(newbirthwt$nonsmoke)
+newbirthwt$smoke <- as.numeric(newbirthwt$smoke)
+newbirthwt$nonsmoke<- as.numeric(newbirthwt$nonsmoke)
 bwt <- newbirthwt$bwt
 smoke <- newbirthwt$smoke
 nonsmoke <- newbirthwt$nonsmoke
@@ -208,9 +216,9 @@ formula.list = list(
   bwt ~ age,
   bwt ~ smoke,
   bwt ~ smoke + age,
-  bwt ~ smoke + smoke:age,
-  bwt ~ smoke + nonsmoke:age,
-  bwt ~ smoke * age
+  bwt ~ smoke + I(smoke*age),
+  bwt ~ smoke + I(nonsmoke*age),
+  bwt ~ smoke + age + I(smoke*age)
 )
 
 table = NULL
@@ -224,8 +232,8 @@ table
 par(mfrow=c(3,2))
 newbirthwt$smoke <- as.numeric(newbirthwt$smoke)
 newbirthwt$nonsmoke <- ifelse(newbirthwt$smoke == 1, 0, 1)
-newbirthwt$smoke <- as.factor(newbirthwt$smoke)
-newbirthwt$nonsmoke<- as.factor(newbirthwt$nonsmoke)
+newbirthwt$smoke <- as.numeric(newbirthwt$smoke)
+newbirthwt$nonsmoke<- as.numeric(newbirthwt$nonsmoke)
 bwt <- newbirthwt$bwt
 smoke <- newbirthwt$smoke
 nonsmoke <- newbirthwt$nonsmoke
@@ -235,45 +243,43 @@ formula.list = list(
   bwt ~ age,
   bwt ~ smoke,
   bwt ~ smoke + age,
-  bwt ~ smoke + smoke:age,
-  bwt ~ smoke + nonsmoke:age,
-  bwt ~ smoke * age
+  bwt ~ smoke + I(smoke*age),
+  bwt ~ smoke + I(nonsmoke*age),
+  bwt ~ smoke + age + I(smoke*age)
 )
-data = list(
-data.frame(age),
-data.frame(smoke),
-data.frame(smoke, age),
-data.frame(smoke, smoke:age),
-data.frame(smoke, nonsmoke:age),
-data.frame(smoke * age))
+data = list(  
+  data.frame(age),
+  data.frame(smoke),
+  data.frame(smoke, age),
+  data.frame(smoke, I(smoke*age)),
+  data.frame(smoke, I(nonsmoke*age)),
+  data.frame(smoke, age, I(smoke*age))
+  )
 
 
-for (i in 1:6) {
-  plot(predict(lm(formula.list[[i]]), newdata = data[i]), age, 
-       xlab = "bwt", ylab = "age",main= formula.list[[i]])
-}
+for(i in 1:6){
+  plot(predict(lm(formula.list[[i]]), newdata = data[i])~age, 
+       ylab = "bwt", xlab = "age",main= formula.list[[i]])}
 ```
 
 ## d)
 
-The model *bwt ~ smoke \* age*, *bwt ~ smoke + smoke:age*, and *bwt ~ smoke + nonsmoke:age*have the highest $R^2_{adj}$ value, which is 0.121. Actually those three models are three identical models.
+The model *bwt ~ smoke + I(nonsmoke \* age)* has the highest $R^2_{adj}$ value, which is 0.023..
 
 ```{r}
-summary(lm(bwt ~ smoke * age))
+summary(lm(bwt ~ smoke + I(nonsmoke * age)))
 ```
-For nonsmoker the model is $Y = 2873.681 + 29.077 * X$.
-For smoker the model is $Y = 3543.187 - 5.53 * X$.
+For nonsmoker the model is $Y = 2624.25 + 7.84 * X$.
+For smoker the model is $Y = 2823.30 + 0 * X$.
 
 ## e)
 
-Since model4, model5 and model6 are three identical models. So, I only consider model1, model2 and model3 and compare them with model6.
-
-Among model1, model2 and model3, model3 has the largest number of model degree of freedom. 
+Model 2 is the submodel of model5 has the largest number of model degree of freedom. 
 
 ```{r}
-M6 = lm(bwt ~ smoke * age)
-M3 = lm(bwt ~ smoke + age)
-anova(M3,M6)
+M2 = lm(bwt ~ smoke)
+M5 = lm(bwt ~ smoke + I(nonsmoke * age))
+anova(M2,M5)
 ```
-As we can the p-value in the anvoa, the full model is slightly better than the model3, which yield the same conclusion as the $R^2_{adj}$ ranking. 
+As we can the p-value in the anvoa, the result seems not yield the same conclusion as the $R^2_{adj}$ ranking. 
 
