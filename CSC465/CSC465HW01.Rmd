@@ -147,9 +147,7 @@ No. Coveriance ratio it alone can not tell which point is really a outlier, sinc
 
 ```{r}
 newbirthwt = subset(birthwt, flag[, 3] > 0)
-newbirthwt$nonsmoke <- 1-newbirthwt$smoke
 newbirthwt$smoke = as.factor(newbirthwt$smoke)
-
 ```
 
 ## b)
@@ -193,11 +191,11 @@ summary.table = function(fit){
              Numerator.d.f,Denominator.d.f, Fstat, Pv)
   
     names(sum) = names(sumname)
+    
+    # print(summary(fit))
   return(sum)
 }
 
-
-newbirthwt$smoke <- as.factor(newbirthwt$smoke)
 newbirthwt$nonsmoke <- ifelse(newbirthwt$smoke == 1, 0, 1)
 newbirthwt$smoke <- as.factor(newbirthwt$smoke)
 newbirthwt$nonsmoke<- as.factor(newbirthwt$nonsmoke)
@@ -211,7 +209,7 @@ formula.list = list(
   bwt ~ smoke,
   bwt ~ smoke + age,
   bwt ~ smoke + smoke:age,
-  bwt ~ smoke+nonsmoke:age,
+  bwt ~ smoke + nonsmoke:age,
   bwt ~ smoke * age
 )
 
@@ -258,15 +256,24 @@ for (i in 1:6) {
 
 ## d)
 
-The model *bwt ~ smoke \* age* have the highest $R^2_{adj}$ value. 
+The model *bwt ~ smoke \* age*, *bwt ~ smoke + smoke:age*, and *bwt ~ smoke + nonsmoke:age*have the highest $R^2_{adj}$ value, which is 0.121. Actually those three models are three identical models.
 
 ```{r}
 summary(lm(bwt ~ smoke * age))
 ```
-
-For smoker the model is $Y = 2873.681 + 29.077 * X$.
-For nonsmoker the model is $Y = 3543.187 - 5.53 * X$.
+For nonsmoker the model is $Y = 2873.681 + 29.077 * X$.
+For smoker the model is $Y = 3543.187 - 5.53 * X$.
 
 ## e)
-Model 1, model 2, model 3 and model 4 are all the sub model of model 6. We can say model 6 is the full model. The $R^2_{adj}$ value also denote that model 6 explain the most variables.
+
+Since model4, model5 and model6 are three identical models. So, I only consider model1, model2 and model3 and compare them with model6.
+
+Among model1, model2 and model3, model3 has the largest number of model degree of freedom. 
+
+```{r}
+M6 = lm(bwt ~ smoke * age)
+M3 = lm(bwt ~ smoke + age)
+anova(M3,M6)
+```
+As we can the p-value in the anvoa, the full model is slightly better than the model3, which yield the same conclusion as the $R^2_{adj}$ ranking. 
 
